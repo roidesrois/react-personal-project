@@ -10,7 +10,7 @@ import Edit from '../../theme/assets/Edit';
 import Remove from '../../theme/assets/Remove';
 import Star from '../../theme/assets/Star';
 import { api } from "../../REST";
-
+import cx from 'classnames';
 // import searchIcon from '../../theme/assets/search-icon.svg';
 // import plusIcon from '../../theme/assets/plus-icon.svg';
 
@@ -102,11 +102,9 @@ export default class Task extends PureComponent {
     };
 
     _toggleTaskCompletedState = () => {
-        const { _updateTaskAsync } = this.props;
+        const { _updateTaskAsync, completed } = this.props;
 
-        const completedTask = this._getTaskShape();
-
-        completedTask.completed = !completedTask.completed;
+        const completedTask = this._getTaskShape({ completed: !completed });
 
         _updateTaskAsync(completedTask);
     };

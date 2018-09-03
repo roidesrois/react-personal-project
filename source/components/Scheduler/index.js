@@ -11,40 +11,18 @@ import Task from '../Task';
 
 import Checkbox from '../../theme/assets/Checkbox';
 
+
 export default class Scheduler extends Component {
 
     state = {
-        tasks: [
-            {
-                "id":        "5a7f136231a5d90001271637",
-                "message":   "Hello Andrey!",
-                "completed": true,
-                "favorite":  false,
-                "created":   "2018-02-10T15:44:34.624Z",
-                "modified":  "2018-02-10T16:01:12.406Z",
-            },
-            {
-                "id":        "5a7f136131a5d90001271636",
-                "message":   "Hello",
-                "completed": false,
-                "favorite":  false,
-                "created":   "2018-02-10T15:44:33.675Z",
-            },
-            {
-                "id":        "5a7f136031a5d90001271635",
-                "message":   "Hello",
-                "completed": false,
-                "favorite":  false,
-                "created":   "2018-02-10T15:44:32.959Z",
-            }
-        ],
+        tasks: [],
         newTaskMessage:  '',
         tasksFilter:     '',
         isTasksFetching: false,
     };
 
     componentDidMount () {
-        // this._getAllCompleted();
+        this._fetchTasksAsync();
     }
 
     _updateTasksFilter = (event) => {
@@ -100,13 +78,13 @@ export default class Scheduler extends Component {
     };
 
     _createTaskAsync = async (event) => {
+        event.preventDefault();
+
         const { newTaskMessage } = this.state;
 
         if (!newTaskMessage.trim()) {
             return null;
         }
-
-        event.preventDefault();
 
         try {
             this._setTasksFetchingState(true);
@@ -184,6 +162,18 @@ export default class Scheduler extends Component {
     render () {
         const { tasks, tasksFilter, newTaskMessage } = this.state;
 
+        const tasksJSX = tasks.map((task) => (
+            <Task
+                _removeTaskAsync = { this._removeTaskAsync }
+                _updateTaskAsync = { this._updateTaskAsync }
+                completed = { task.completed }
+                favorite = { task.favorite }
+                id = { task.id }
+                key = { task.id }
+                message = 'Выполнить важную задачу (создано в конструкторе).'
+            />
+        ));
+
         return (
             <section className = { Styles.scheduler }>
                 <Spinner isSpinning />
@@ -200,19 +190,8 @@ export default class Scheduler extends Component {
                         </form>
                         <div className = 'overlay'>
                             <ul>
-
                                 <FlipMove duration = { 400 }>
-                                    tasks.map((task) => (
-                                    <Task
-                                        _removeTaskAsync = { this._removeTaskAsync }
-                                        _updateTaskAsync = { this._updateTaskAsync }
-                                        completed = { task.completed }
-                                        favorite = { task.favorite }
-                                        id = { task.id }
-                                        key = { task.id }
-                                        message = 'Выполнить важную задачу (создано в конструкторе).'
-                                    />
-                                    ));
+                                    {tasksJSX}
                                 </FlipMove>
                             </ul>
                         </div>

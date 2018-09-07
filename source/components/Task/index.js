@@ -9,19 +9,18 @@ import Checkbox from '../../theme/assets/Checkbox';
 import Edit from '../../theme/assets/Edit';
 import Remove from '../../theme/assets/Remove';
 import Star from '../../theme/assets/Star';
-import { api } from "../../REST";
+
 import cx from 'classnames';
-// import searchIcon from '../../theme/assets/search-icon.svg';
-// import plusIcon from '../../theme/assets/plus-icon.svg';
 
 export default class Task extends PureComponent {
     static propTypes = {
         _updateTaskAsync: func.isRequired,
+        message:          string,
     };
 
     state = {
         isTaskEditing: false,
-        newMessage:    '',
+        newMessage:    this.props.message,
     };
 
     _getTaskShape = ({
@@ -57,8 +56,8 @@ export default class Task extends PureComponent {
         }
     };
 
+    // svoystvo clasa, t.k. zapisano  peremennuyu, cherez "="
     _setTaskEditingState = (isTaskEditing) => {
-
         this.setState({
             isTaskEditing,
         });
@@ -66,9 +65,12 @@ export default class Task extends PureComponent {
         if (isTaskEditing) {
             this._taskInputFocus();
         }
-
-        console.log("_setTaskEditingState", isTaskEditing);
     };
+
+    // method klassa
+    // someMethod () {
+    //
+    // }
 
     _updateTask = () => {
         const { _updateTaskAsync, message } = this.props;
@@ -80,7 +82,7 @@ export default class Task extends PureComponent {
             return null;
         }
 
-        _updateTaskAsync();
+        _updateTaskAsync(this._getTaskShape({ message: newMessage }));
 
         this._setTaskEditingState(false);
     };
@@ -94,11 +96,15 @@ export default class Task extends PureComponent {
             return null;
         }
 
-        this._setTaskEditingState();
+        this._setTaskEditingState(true);
     };
 
     _cancelUpdatingTaskMessage = () => {
+        this._setTaskEditingState(false);
 
+        this.setState({
+            newMessage: this.props.message,
+        });
     };
 
     _toggleTaskCompletedState = () => {
@@ -110,11 +116,17 @@ export default class Task extends PureComponent {
     };
 
     _toggleTaskFavoriteState = () => {
-        return null;
+        const { _updateTaskAsync, favorite } = this.props;
+
+        const favoriteTask = this._getTaskShape({ favorite: !favorite });
+
+        _updateTaskAsync(favoriteTask);
     };
 
     _removeTask = () => {
-        return null;
+        const { _removeTaskAsync, id } = this.props;
+
+        _removeTaskAsync(id);
     };
 
     _taskInputFocus = () => {
@@ -129,53 +141,69 @@ export default class Task extends PureComponent {
         });
     };
 
-    render () {
-        return (<li className = { Styles.task }>
-            <div className = 'content'>
-                <Checkbox
-                    checked = { false }
-                    className = 'toggleTaskCompletedState'
-                    color1 = '#3B8EF3'
-                    color2 = '#FFF'
-                    inlineBlock
-                    onClick = { this._toggleTaskCompletedState }
-                />
-                <input
-                    disabled
-                    maxLength = { 50 }
-                    ref = { this.taskInput }
-                    onChange = { this._updateNewTaskMessage }
-                    onKeyDown = { this._updateTaskMessageOnKeyDown }
-                    type = 'text'
-                    value = 'Выполнить важную задачу.'
-                />
-            </div>
+    _getTaskStyles = () => {
+        const { completed } = this.props;
+        // const taskCompleted = this.taskCompleted();
 
-            <div className = 'actions' >
-                <Star
-                    checked = { false }
-                    className = 'toggleTaskFavoriteState'
-                    color1 = '#3B8EF3'
-                    color2 = '#000'
-                    inlineBlock
-                    onClick = { this._toggleTaskFavoriteState }
-                />
-                <Edit
-                    checked = { false }
-                    className = 'updateTaskMessageOnClick'
-                    color1 = '#3B8EF3'
-                    color2 = '#000'
-                    inlineBlock
-                    onClick = { this._updateTaskMessageOnClick }
-                />
-                <Remove
-                    className = 'removeTask'
-                    color1 = '#3B8EF3'
-                    color2 = '#000'
-                    inlineBlock
-                    onClick = { this._removeTask }
-                />
-            </div>
-        </li>);
+        return cx(Styles.task, {
+            [Styles.completed]: completed,
+        });
+    };
+
+    render () {
+        const { message, favorite, completed } = this.props;
+        const { isTaskEditing, newMessage } = this.state;
+
+        const taskStyles = this._getTaskStyles();
+
+        return (
+            <li className = { taskStyles }>
+                <div className = { Styles.content }>
+                    <Checkbox
+                        checked = { completed }
+                        className = { Styles.toggleTaskCompletedState }
+                        color1 = '#3B8EF3'
+                        color2 = '#FFF'
+                        inlineBlock
+                        onClick = { this._toggleTaskCompletedState }
+                    />
+                    <input
+                        disabled = { !isTaskEditing }
+                        maxLength = { 50 }
+                        onChange = { this._updateNewTaskMessage }
+                        onKeyDown = { this._updateTaskMessageOnKeyDown }
+                        ref = { this.taskInput }
+                        type = 'text'
+                        value = { newMessage }
+                    />
+                </div>
+
+                <div className = { Styles.actions }>
+                    <Star
+                        checked = { favorite }
+                        className = { Styles.toggleTaskFavoriteState }
+                        color1 = '#3B8EF3'
+                        color2 = '#000'
+                        inlineBlock
+                        onClick = { this._toggleTaskFavoriteState }
+                    />
+                    <Edit
+                        checked = { isTaskEditing }
+                        className = { Styles.updateTaskMessageOnClick }
+                        color1 = '#3B8EF3'
+                        color2 = '#000'
+                        inlineBlock
+                        onClick = { this._updateTaskMessageOnClick }
+                    />
+                    <Remove
+                        className = { Styles.removeTask }
+                        color1 = '#3B8EF3'
+                        color2 = '#000'
+                        inlineBlock
+                        onClick = { this._removeTask }
+                    />
+                </div>
+            </li>
+        );
     }
 }

@@ -11,11 +11,12 @@ import Task from '../Task';
 
 import Checkbox from '../../theme/assets/Checkbox';
 
+import { sortTasksByDate, sortTasksByGroup } from '../../instruments';
+
 
 export default class Scheduler extends Component {
-
     state = {
-        tasks: [],
+        tasks:           [],
         newTaskMessage:  '',
         tasksFilter:     '',
         isTasksFetching: false,
@@ -69,7 +70,6 @@ export default class Scheduler extends Component {
             this.setState({
                 tasks,
             });
-
         } catch (error) {
             console.error(error);
         } finally {
@@ -96,20 +96,25 @@ export default class Scheduler extends Component {
                 newTaskMessage: '',
             }));
         } catch (error) {
-            console.error();
+            console.error(error);
         } finally {
             this._setTasksFetchingState(false);
         }
     };
 
-    _updateTaskAsync = async (updatedTaskMessage) => {
+    _updateTaskAsync = async (updatedTask) => {
         try {
             this._setTasksFetchingState(true);
 
-            await api.updateTask(updatedTaskMessage);
+            await api.updateTask(updatedTask);
 
+            this.setState((prevState) => ({
+                tasks: prevState.tasks.map(
+                    (task) => task.id === updatedTask.id ? updatedTask : task,
+                ),
+            }));
         } catch (error) {
-            console.error();
+            console.error(error);
         } finally {
             this._setTasksFetchingState(false);
         }
@@ -121,6 +126,9 @@ export default class Scheduler extends Component {
 
             await api.removeTask(id);
 
+            this.setState(({ tasks }) => ({
+                tasks: tasks.filter((task) => task.id !== id),
+            }));
         } catch (error) {
             console.error();
         } finally {
@@ -129,7 +137,6 @@ export default class Scheduler extends Component {
     };
 
     _completeAllTasksAsync = async () => {
-
         const allCompleted = this._getAllCompleted();
 
         if (allCompleted) {
@@ -138,10 +145,16 @@ export default class Scheduler extends Component {
 
         const { tasks } = this.state;
 
-        const notCompletedTasks = tasks
-            .filter((task) => task.completed === false);
+        const notCompletedTasks = tasks.filter(
+            (task) => task.completed === false,
+        );
 
-        const competedTasks = notCompletedTasks.map((task) => task.completed === false ? { ...task, ...{ completed: true }} : task);
+        const competedTasks = notCompletedTasks.map(
+            (task) =>
+                task.completed === false
+                    ? { ...task, ...{ completed: true }}
+                    : task,
+        );
 
         try {
             this._setTasksFetchingState(true);
@@ -149,50 +162,74 @@ export default class Scheduler extends Component {
             await api.completeAllTasks(notCompletedTasks);
 
             this.setState({
-                tasks: competedTasks,
+                tasks: tasks.map(
+                    (task) =>
+                        task.completed === false
+                            ? { ...task, ...{ completed: true }}
+                            : task,
+                ),
             });
-
         } catch (error) {
-            console.error();
+            console.error(error);
         } finally {
             this._setTasksFetchingState(false);
         }
     };
 
     render () {
-        const { tasks, tasksFilter, newTaskMessage } = this.state;
+        const {
+            tasks,
+            tasksFilter,
+            newTaskMessage,
+            isTasksFetching,
+        } = this.state;
 
-        const tasksJSX = tasks.map((task) => (
-            <Task
-                _removeTaskAsync = { this._removeTaskAsync }
-                _updateTaskAsync = { this._updateTaskAsync }
-                completed = { task.completed }
-                favorite = { task.favorite }
-                id = { task.id }
-                key = { task.id }
-                message = 'Выполнить важную задачу (создано в конструкторе).'
-            />
-        ));
+
+        const sortedTasksByDate = sortTasksByDate(tasks);
+        const sortedTaskByGroup = sortTasksByGroup(tasks);
+
+        const tasksJSX = sortedTaskByGroup
+            .filter((task) => task.message.includes(tasksFilter))
+            .map((task) => (
+                <Task
+                    _removeTaskAsync = { this._removeTaskAsync }
+                    _updateTaskAsync = { this._updateTaskAsync }
+                    completed = { task.completed }
+                    favorite = { task.favorite }
+                    id = { task.id }
+                    key = { task.id }
+                    message = { task.message }
+                />
+            ));
 
         return (
             <section className = { Styles.scheduler }>
-                <Spinner isSpinning />
+                <Spinner isSpinning = { isTasksFetching } />
                 <main>
                     <header>
                         <h1>Планировщик задач</h1>
-                        <input placeholder = 'Поиск' type = 'search' onChange = { this._updateTasksFilter } value = { tasksFilter } />
+                        <input
+                            placeholder = 'Поиск'
+                            type = 'search'
+                            onChange = { this._updateTasksFilter }
+                            value = { tasksFilter }
+                        />
                     </header>
                     <section>
-                        <form
-                            onSubmit = { this._createTaskAsync }>
-                            <input className = 'createTask' maxLength = { 50 } placeholder = 'Описaние моей новой задачи' type = 'text' onChange = { this._updateNewTaskMessage } value = { newTaskMessage } />
-                            <button /*onClick = { this._updateNewTaskMessage }*/ >Добавить задачу</button>
+                        <form onSubmit = { this._createTaskAsync }>
+                            <input
+                                className = 'createTask'
+                                maxLength = { 50 }
+                                placeholder = 'Описaние моей новой задачи'
+                                type = 'text'
+                                onChange = { this._updateNewTaskMessage }
+                                value = { newTaskMessage }
+                            />
+                            <button>Добавить задачу</button>
                         </form>
                         <div className = 'overlay'>
                             <ul>
-                                <FlipMove duration = { 400 }>
-                                    {tasksJSX}
-                                </FlipMove>
+                                <FlipMove duration = { 400 }>{tasksJSX}</FlipMove>
                             </ul>
                         </div>
                     </section>

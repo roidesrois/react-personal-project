@@ -1,7 +1,6 @@
 import { MAIN_URL, TOKEN } from './config';
 
 export const api = {
-
     async fetchTasks () {
         const response = await fetch(`${MAIN_URL}`, {
             method:  'GET',
@@ -20,8 +19,7 @@ export const api = {
 
         return tasks;
     },
-    async createTask (newTaskMessage) {
-
+    async createTask (message) {
         const response = await fetch(MAIN_URL, {
             method:  'POST',
             headers: {
@@ -29,7 +27,7 @@ export const api = {
                 Authorization:  TOKEN,
             },
             body: JSON.stringify({
-                newTaskMessage,
+                message,
             }),
         });
 
@@ -41,17 +39,14 @@ export const api = {
 
         return task;
     },
-    async updateTask (updatedTaskMessage) {
-
+    async updateTask (updatedTask) {
         const response = await fetch(MAIN_URL, {
             method:  'PUT',
             headers: {
                 'content-type': 'application/json',
                 Authorization:  TOKEN,
             },
-            body: JSON.stringify({
-                updatedTaskMessage,
-            }),
+            body: JSON.stringify([updatedTask]),
         });
 
         if (response.status !== 200) {
@@ -70,29 +65,26 @@ export const api = {
             },
         });
 
-        if (response.status !== 204) {
+        if (response.status !== 204 && response.status !== 200) {
             throw new Error('Task were not deleted');
         }
-
-        return null;
     },
 
     async completeAllTasks (completedTasks) {
-        const response = await fetch(`${MAIN_URL}`, {
-            method:  'PUT',
-            headers: {
-                Authorization: TOKEN,
-            },
-            body: JSON.stringify({
-                completedTasks,
+        const fetchCompletedTasks = completedTasks.map((task) =>
+            fetch(`${MAIN_URL}`, {
+                method:  'PUT',
+                headers: {
+                    Authorization: TOKEN,
+                },
+                body: JSON.stringify([task]),
             }),
-        });
+        );
 
-        if (response.status !== 200) {
-            throw new Error('Tasks were not completed');
-        }
+        await Promise.all(fetchCompletedTasks);
 
-        return null;
+        // if (response.status !== 200) {
+        //     throw new Error('Tasks were not completed');
+        // }
     },
-
 };

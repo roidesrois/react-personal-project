@@ -14,8 +14,9 @@ import {
 afterEach(() => {
     result.setState(initialState);
     jest.clearAllMocks();
-});
+}); // posle kajdogo zapuska testa ustanavlivaem defoltnnoe znachenie State-a i spbrasivaem vsex shpionov, chtobi sled. testi startovalis' s chistogo lista
 
+// testi react component-ov
 describe('Компонент Task:', () => {
     describe('должен иметь базовую разметку JSX:', () => {
         describe('должен соответствовать снимку разметки', () => {
@@ -138,7 +139,7 @@ describe('Компонент Task:', () => {
                 expect(typeof result.instance()._getTaskShape).toBe('function');
             });
 
-            test(`должен принимать объект-модель задачи в качестве обязательного параметра, с не обязательными свойствами id, completed, favorite, message.`, () => {
+            test('должен принимать объект-модель задачи в качестве обязательного параметра, с не обязательными свойствами id, completed, favorite, message.', () => {
                 result.instance()._getTaskShape(updatedTaskModel);
 
                 expect(spies._getTaskShapeSpy).toHaveBeenNthCalledWith(

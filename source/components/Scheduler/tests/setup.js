@@ -24,7 +24,7 @@ const result = mount(<Scheduler />);
 
 // Spies
 const spies = {
-    _updateTasksFilterSpy:    jest.spyOn(result.instance(), '_updateTasksFilter'),
+    _updateTasksFilterSpy:    jest.spyOn(result.instance(), '_updateTasksFilter'), // 1iy argument gde iskat', 2-oy chto. Ustanavlivaet shpion
     _updateNewTaskMessageSpy: jest.spyOn(
         result.instance(),
         '_updateNewTaskMessage',

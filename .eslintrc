@@ -138,7 +138,8 @@ rules:
   camelcase: 1
   capitalized-comments: 0
   comma-dangle: [1, {
-    "objects": "always-multiline"
+    "objects": "always-multiline",
+    "functions":"always-multiline",
   }]
   comma-spacing: 1
   comma-style: 1
@@ -151,6 +152,7 @@ rules:
   func-style: ["error", "declaration", { "allowArrowFunctions": true }]
   id-blacklist: 1
   indent: [1, 4, {"SwitchCase": 1}]
+  quotes: [1, 'single']
   jsx-quotes: [1, "prefer-single"]
   keyword-spacing: 1
   linebreak-style: 0
